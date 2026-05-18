@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kara Defter Giriş Portalı</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #f59e0b;
+      --accent-hover: #d97706;
+      --success: #10b981;
+      --border: rgba(255, 255, 255, 0.08);
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(245, 158, 11, 0.1) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .container {
+      perspective: 1000px;
+      width: 90%;
+      max-width: 440px;
+    }
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 40px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      transform: translateY(0);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: floatIn 1s ease-out;
+    }
+    @keyframes floatIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .logo {
+      font-size: 48px;
+      margin-bottom: 16px;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: 800;
+      margin: 0 0 8px 0;
+      background: linear-gradient(135deg, #f59e0b, #10b981);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    p {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin: 0 0 32px 0;
+      line-height: 1.5;
+    }
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f172a;
+      background: linear-gradient(135deg, #f59e0b, #eab308);
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 10px 20px rgba(245, 158, 11, 0.2);
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+    }
+    .btn:hover {
+      background: linear-gradient(135deg, #eab308, #d97706);
+      transform: translateY(-2px);
+      box-shadow: 0 14px 28px rgba(245, 158, 11, 0.35);
+    }
+    .btn:active {
+      transform: translateY(1px);
+    }
+    .status {
+      margin-top: 24px;
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      background: var(--success);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--success);
+      animation: blink 1.5s infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+    .loader {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2.5px solid rgba(15, 23, 42, 0.2);
+      border-top-color: #0f172a;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 4px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="logo">🌩️</div>
+      <h1>KARA DEFTER</h1>
+      <p>Sisteme güvenli ve hızlı bir şekilde bağlanmak için aşağıdaki butona tıklayın.</p>
+      
+      <a id="connectBtn" href="#" class="btn">
+        <span class="loader" id="loader"></span>
+        <span id="btnText">Yönlendiriliyor...</span>
+      </a>
+
+      <div class="status">
+        <span class="dot"></span>
+        <span id="statusText">Bağlantı aranıyor...</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const btn = document.getElementById('connectBtn');
+    const btnText = document.getElementById('btnText');
+    const loader = document.getElementById('loader');
+    const statusText = document.getElementById('statusText');
+
+    // Tünel linkini link.json'dan çek
+    fetch('link.json?t=' + Date.now())
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.url) {
+          btn.href = data.url;
+          statusText.innerText = "Bağlantı aktif: " + data.url;
+          btnText.innerText = "🔌 Sisteme Bağlan";
+          loader.style.display = "none";
+          
+          // 1.5 saniye sonra otomatik yönlendir
+          setTimeout(() => {
+            loader.style.display = "inline-block";
+            btnText.innerText = "Yönlendiriliyor...";
+            window.location.href = data.url;
+          }, 1500);
+        } else {
+          statusText.innerText = "Tünel henüz aktif değil.";
+          btnText.innerText = "Sunucu Bekleniyor";
+          loader.style.display = "none";
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        statusText.style.color = "#ef4444";
+        statusText.innerText = "Bağlantı adresi alınamadı.";
+        btnText.innerText = "Yeniden Dene";
+        loader.style.display = "none";
+        btn.onclick = () => window.location.reload();
+      });
+  </script>
+</body>
+</html>
