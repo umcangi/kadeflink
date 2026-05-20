@@ -29,12 +29,13 @@
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      overflow: hidden;
+      overflow-x: hidden;
     }
     .container {
       perspective: 1000px;
       width: 90%;
       max-width: 440px;
+      padding: 20px 0;
     }
     .card {
       background: var(--card-bg);
@@ -54,14 +55,50 @@
       to { opacity: 1; transform: translateY(0); }
     }
     .logo {
-      font-size: 48px;
-      margin-bottom: 16px;
+      font-size: 40px;
+      margin-bottom: 12px;
       animation: pulse 2s infinite;
     }
     @keyframes pulse {
       0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.08); }
+      50% { transform: scale(1.05); }
     }
+    
+    /* Karekod Alanı Tasarımı */
+    .qr-container {
+      background: white;
+      padding: 12px;
+      border-radius: 16px;
+      display: inline-block;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    }
+    .qr-container img {
+      display: block;
+      width: 140px;
+      height: 140px;
+    }
+    .qr-text {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: -8px;
+      margin-bottom: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    /* 🆕 Güncelleme Saati Göstergesi */
+    .update-time {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin: -12px 0 20px 0;
+      opacity: 0.8;
+      font-style: italic;
+    }
+    .update-time strong {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
     h1 {
       font-size: 24px;
       font-weight: 800;
@@ -73,7 +110,7 @@
     p {
       color: var(--text-muted);
       font-size: 14px;
-      margin: 0 0 32px 0;
+      margin: 0 0 24px 0;
       line-height: 1.5;
     }
     .btn {
@@ -143,6 +180,17 @@
   <div class="container">
     <div class="card">
       <div class="logo">🌩️</div>
+      
+      <div class="qr-container">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://umcangi.github.io/kadeflink/" alt="Kara Defter QR">
+      </div>
+      <div class="qr-text">Hızlı erişim için telefonunuzla taratın</div>
+      
+      <!-- 🆕 Güncelleme Saati -->
+      <div id="lastUpdate" class="update-time">
+        ⏳ Son güncelleme yükleniyor...
+      </div>
+
       <h1>KARA DEFTER</h1>
       <p>Sisteme güvenli ve hızlı bir şekilde bağlanmak için aşağıdaki butona tıklayın.</p>
       
@@ -163,13 +211,39 @@
     const btnText = document.getElementById('btnText');
     const loader = document.getElementById('loader');
     const statusText = document.getElementById('statusText');
+    const lastUpdateDiv = document.getElementById('lastUpdate');
 
-    // Tünel linkini link.json'dan çek
+    // Tünel linkini ve güncelleme saatini link.json'dan çek
     fetch('link.json?t=' + Date.now())
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Dosya okunamadı');
+        return res.json();
+      })
       .then(data => {
         if (data && data.url) {
           btn.href = data.url;
+          
+          // 🆕 Güncelleme saatini formatla ve göster
+          if (data.updated_at) {
+            try {
+              const updateDate = new Date(data.updated_at);
+              const formatted = updateDate.toLocaleString('tr-TR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+              });
+              lastUpdateDiv.innerHTML = `🕐 Son güncelleme: <strong>${formatted}</strong>`;
+            } catch (e) {
+              console.error('Tarih formatlama hatası:', e);
+              lastUpdateDiv.innerHTML = `🕐 Son güncelleme: ${data.updated_at}`;
+            }
+          } else {
+            lastUpdateDiv.innerHTML = '⚠️ Güncelleme bilgisi yok';
+          }
+          
           statusText.innerText = "Bağlantı aktif: " + data.url;
           btnText.innerText = "🔌 Sisteme Bağlan";
           loader.style.display = "none";
@@ -184,14 +258,16 @@
           statusText.innerText = "Tünel henüz aktif değil.";
           btnText.innerText = "Sunucu Bekleniyor";
           loader.style.display = "none";
+          lastUpdateDiv.innerHTML = "⚠️ URL bilgisi yok";
         }
       })
       .catch(err => {
-        console.error(err);
+        console.error('Hata:', err);
         statusText.style.color = "#ef4444";
         statusText.innerText = "Bağlantı adresi alınamadı.";
         btnText.innerText = "Yeniden Dene";
         loader.style.display = "none";
+        lastUpdateDiv.innerHTML = "❌ Veri yüklenemedi";
         btn.onclick = () => window.location.reload();
       });
   </script>
